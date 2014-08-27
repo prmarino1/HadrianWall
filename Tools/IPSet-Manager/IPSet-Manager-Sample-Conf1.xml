@@ -1,0 +1,14 @@
+<XML>
+<ipset name="allnets">
+  <type>hash:net</type>
+  <header>
+    <family>inet</family>
+    <hashsize>1024</hashsize>
+    <maxelem>65536</maxelem>
+  </header>
+  <members>
+    <member>10.254.254.0/24</member>
+    <member>192.168.93.0/24</member>
+  </members>
+</ipset>
+</XML>
