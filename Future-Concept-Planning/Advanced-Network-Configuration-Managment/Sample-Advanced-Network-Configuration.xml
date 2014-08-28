@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<XML>
+    <!-- Warning this is still in the concept development stage it has many flaws to work out -->
+    <!-- Eventually this will be the configuration file for an advanced network configuration tool.
+    Primarily it is meant for firewall clusters but will be useful for other systems and clusters too. -->
+    <CLUSTER>
+        <NODE>
+            <!-- UUID number retrived via `dmidecode -s system-uuid` -->
+            <UUID>32393735-3733-5355-4531-30374E36445A</UUID>
+            <NAME>firewall01.example.net</NAME>
+            <ADDRESS>
+                <IP>192.168.1.2/24</IP>
+                <!-- VLAN may be ignored for bridges -->
+                <VLAN>1300</VLAN>
+                <BRIDGED>
+                    <NAME>br0</NAME>
+                </BRIDGED>
+                <!-- This Interface tag is ignored if the adress is assigned to a bridge -->
+                <INTERFACE>bond0</INTERFACE>
+                <ROUTE>
+                    <TARGET>10.150.99.0/24</TARGET>
+                <GATEWAY>192.168.1.8</GATEWAY>
+                </ROUTE>
+                <ROUTE>
+                    <!--  the priority sequience of the route -->
+                    <PRIORITY>5</PRIORITY>
+                    <TARGET>default</TARGET>
+                    <!-- name of table for rule based routing -->
+                    <TABLE>loadbalanced</TABLE>
+                    
+                    <!-- weighted load balancing of routes betwean two gateways -->
+                    <!-- If you are using nexhop the gateway must be in the NEXTHOP tag -->
+                    
+                    <NEXTHOP>
+                        <GATEWAY>192.168.1.5</GATEWAY>
+                        <!-- Bandwidth based load balancing weight -->
+                        <WEIGHT>1</WEIGHT>
+                    </NEXTHOP>
+                    <NEXTHOP>
+                        <GATEWAY>192.168.1.6</GATEWAY>
+                        <WEIGHT>5</WEIGHT>
+                    </NEXTHOP>
+                </ROUTE>
+            </ADDRESS>
+            <ADDRESS>
+                <IP>192.168.2.2/24</IP>
+                <VLAN>1301</VLAN>
+                <BRIDGED>
+                    <NAME>br1</NAME>
+                </BRIDGED>
+            </ADDRESS>
+            <!-- More than one bridge interface can be defined -->
+            <BRIDGE>
+                <ENABLED>TRUE</ENABLED>
+                <NAME>br0</NAME>
+                <TRANSPARENT>FALSE</TRANSPARENT>
+                <SPANINGTREE>
+                    <ENABLED>FALSE</ENABLED>
+                </SPANINGTREE>
+            </BRIDGE>
+            <BRIDGE>
+                <ENABLED>TRUE</ENABLED>
+                    <NAME>br1</NAME>
+                    <!-- In transparent mode the physical interfaces are set to promiscuous mode and the ip addresses if any are assigned to the bridge -->
+                    <!-- In non tranparent mode the ip addresses are assigned to the interfaces with a /32 mask and the routes are applied to the bridge -->
+                    <!-- Additionally in non transparent mode a static neighbor maping to the broadcast address to mac address ff:ff:ff:ff:ff:ff will be added to the bridge-->
+                    <TRANSPARENT>FALSE</TRANSPARENT>
+                    <!-- yes we can do this spanning tree is possible on Linux if you use a bridge device but sorry no RSTP -->
+                    <SPANINGTREE>
+                        <ENABLED>TRUE</ENABLED>
+                        <PRIORITY>1</PRIORITY>
+                        <FORWARDDELAY>0</FORWARDDELAY>
+                        <HELLOTIME>1</HELLOTIME>
+                        <MAXAGE>2</MAXAGE>
+                        <!-- Spanning tree based dynamic routing -->
+                        <PORT>
+                            <NAME>bond0</NAME>
+                            <VLAN>1301</VLAN>
+                            <!-- see http://en.wikipedia.org/wiki/Spanning_Tree_Protocol#Data_rate_and_STP_path_cost -->
+                            <COST>4</COST>
+                            <PRIORITY>1</PRIORITY>
+                        </PORT>
+                    </SPANINGTREE>
+            </BRIDGE>
+            <NEIGHBOR>
+                <IPADDRESS>192.168.1.5</IPADDRESS>
+                <DEVICE>br0</DEVICE>
+                <LINKADDRESS>a1:2d:3a:f0:1f:9c</LINKADDRESS>
+                <STATE>permanent</STATE>
+            </NEIGHBOR>
+            <INTERFACE>
+                <!-- The name doesnt have to match the physical device or type of device you can actually name it whatever you want -->
+                <NAME>bond0</NAME>
+                <DEVICE>eth0</DEVICE>
+                <DEVICE>eth1</DEVICE>
+                <BONDING>
+                    <ENABLED>TRUE</ENABLED>
+                    <MODE>1</MODE>
+                    <OPTIONS></OPTIONS>
+                    <NAME>bond0</NAME>
+                </BONDING>
+            </INTERFACE>
+            <!-- used for policy based routing -->
+            <ROUTINGTABLE>
+                <!-- the name of the routing table -->
+                <NAME>loadbalanced</NAME>
+                <!-- For use with iptables mark option for rule based routing -->
+                <MARK>100</MARK>
+            </ROUTINGTABLE>
+        </NODE>
+        <NODE>
+            <!-- UUID number retrived via `dmidecode -s system-uuid` -->
+            <UUID>5FEAA22F-7674-2539-9D99-3A7158BCC973</UUID>
+            <NAME>firewall02.example.net</NAME>
+            <BRIDGE>
+                <ENABLED>TRUE</ENABLED>
+                <NAME>br1</NAME>
+                <!-- in transparent mode the physical interfaces are set to promiscuous mode and the ip addresses if any are assigned to the bridge -->
+                <!-- in non tranparent mode the ip addresses are assigned to the interfaces with a /32 mask and the routes are applied to the bridge -->
+                <TRANSPARENT>FALSE</TRANSPARENT>
+                <!-- yes we can do this spanning tree is possible on Linux if you use a bridge device but sorry no RSTP -->
+                <SPANINGTREE>
+                    <ENABLED>TRUE</ENABLED>
+                    <PRIORITY>1</PRIORITY>
+                    <FORWARDDELAY>0</FORWARDDELAY>
+                    <HELLOTIME>1</HELLOTIME>
+                    <MAXAGE>2</MAXAGE>
+                    <!-- Spanning tree based dynamic routing -->
+                    <PORT>
+                        <NAME>bond0</NAME>
+                        <VLAN>1301</VLAN>
+                        <!-- see http://en.wikipedia.org/wiki/Spanning_Tree_Protocol#Data_rate_and_STP_path_cost -->
+                        <COST>4</COST>
+                        <!-- Each spanning tree port must have a unique priority number -->
+                        <PRIORITY>2</PRIORITY>
+                    </PORT>
+                </SPANINGTREE>
+            </BRIDGE>
+            <INTERFACE>
+                <!-- The name doesnt have to match the physical device or type of device you can actually name it whatever you want -->
+                <NAME>bond0</NAME>
+                <DEVICE>eth0</DEVICE>
+                <DEVICE>eth1</DEVICE>
+                <BONDING>
+                    <ENABLED>TRUE</ENABLED>
+                    <MODE>1</MODE>
+                    <OPTIONS></OPTIONS>
+                    <NAME>bond0</NAME>
+                </BONDING>
+            </INTERFACE>
+            <!-- used for policy based routing -->
+            <ROUTINGTABLE>
+                <!-- the name of the routing table -->
+                <NAME>loadbalanced</NAME>
+                <!-- For use with iptables mark option for rule based routing -->
+                <MARK>100</MARK>
+            </ROUTINGTABLE>
+        </NODE>
+    </CLUSTER>
+</XML>
